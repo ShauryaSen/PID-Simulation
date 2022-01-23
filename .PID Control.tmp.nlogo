@@ -33,17 +33,15 @@ end
 to go
   ask turtles [
     set error-distance (set-point - encoder-value) * .47 ; .47 isn't necessary
-
     set motor-output kP * error-distance
     fd motor-output
-
     display
     wait 0.01
   ]
 end
 
-to-report encoder-value ; I could just say xcor but I want to demonstrate what encoder sensor is for
-  report xcor
+to-report encoder-value
+  report (xcor
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

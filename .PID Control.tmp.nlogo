@@ -1,5 +1,5 @@
 ; error is distance between robgot and setpoint
-turtles-own [ motor-output error-distance]
+turtles-own [ motor-output error-distance error-sum]
 
 globals [ start-point set-point ]
 
@@ -10,7 +10,9 @@ to setup
 end
 
 to setup-field
-  set set-point (max-pxcor - 3)
+  set set-point (max-pxcor - 3) ; set point is 27
+;  show "set-p
+;  show set-point
   set start-point (min-pxcor + 3)
    ask patches [
     if abs(pycor) < 3.5 [set pcolor white]
@@ -26,22 +28,32 @@ to setup-bot
     set heading 90
     set size 2
     set shape "car"
+    set error-sum 0
   ]
 end
 
 
 to go
   ask turtles [
-    set error-distance (set-point - encoder-value) * .47 ; .47 isn't necessary
-    set motor-output kP * error-distance
+    set error-distance (set-point - encoder-value)
+    set error-sum (error-sum + error-distance * timer) ;timer is change in time since reset-timer
+
+
+
+    set motor-output (kP * error-distance) + (kI * error-sum) * .47
     fd motor-output
+
     display
+
+
+    reset-timer
     wait 0.01
+
   ]
 end
 
-to-report encoder-value
-  report (xcor
+to-report encoder-value ; I could just say xcor but I want to demonstrate what encoder sensor is for
+  report xcor
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -111,7 +123,7 @@ INPUTBOX
 250
 105
 kP
-0.15
+0.3
 1
 0
 Number
@@ -122,7 +134,7 @@ INPUTBOX
 309
 105
 kI
-0.0
+0.1
 1
 0
 Number

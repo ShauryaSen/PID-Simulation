@@ -1,7 +1,7 @@
 ; error is distance between robgot and setpoint
 turtles-own [ motor-output error-distance error-sum]
 
-globals [ start-point set-point ]
+globals [ start-point set-point IZone ]
 
 to setup
   ca
@@ -11,6 +11,7 @@ end
 
 to setup-field
   set set-point (max-pxcor - 3) ; set point is 27
+  set IZone 2
 ;  show "set-p
 ;  show set-point
   set start-point (min-pxcor + 3)
@@ -36,9 +37,12 @@ end
 to go
   ask turtles [
     set error-distance (set-point - encoder-value)
-    set error-sum (error-sum + error-distance * timer) ;timer is change in time since reset-timer
 
+;    if abs(error-distance) <= IZone [
+      set error-sum (error-sum + error-distance * timer) ;timer is change in time since reset-timer
+    ]
 
+    show error-sum
 
     set motor-output (kP * error-distance) + (kI * error-sum) * .47
     fd motor-output
@@ -70,7 +74,7 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
+0
 1
 1
 -30

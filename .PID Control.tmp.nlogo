@@ -1,7 +1,7 @@
 ; error is distance between robgot and setpoint
-turtles-own [ motor-output error-distance error-sum]
+turtles-own [ motor-output error-distance error-sum error-rate]
 
-globals [ start-point set-point IZone ]
+globals [ start-point set-point IZone prev-error]
 
 to setup
   ca
@@ -11,9 +11,8 @@ end
 
 to setup-field
   set set-point (max-pxcor - 3) ; set point is 27
-  set IZone 2
-;  show "set-p
-;  show set-point
+  set IZone 6
+
   set start-point (min-pxcor + 3)
    ask patches [
     if abs(pycor) < 3.5 [set pcolor white]
@@ -27,7 +26,7 @@ to setup-bot
     set xcor start-point
     set ycor 0
     set heading 90
-    set size 2
+    set size 2n
     set shape "car"
     set error-sum 0
   ]
@@ -38,20 +37,25 @@ to go
   ask turtles [
     set error-distance (set-point - encoder-value)
 
-;    if abs(error-distance) <= IZone [
+    if timer != 0 [set error-rate ((error-distance - prev-error) / timer)] ; error-rate
+    show error-rate
+
+    if abs(error-distance) <= IZone [
       set error-sum (error-sum + error-distance * timer) ;timer is change in time since reset-timer
     ]
 
-    show error-sum
 
-    set motor-output (kP * error-distance) + (kI * error-sum) * .47
+
+    set motor-output (kP * error-distance) + (kI * error-sum) + (kD * error-rate)
     fd motor-output
 
     display
 
 
     reset-timer
+    set prev-error error-distance
     wait 0.01
+
 
   ]
 end
@@ -127,7 +131,7 @@ INPUTBOX
 250
 105
 kP
-0.3
+0.1
 1
 0
 Number
@@ -138,7 +142,7 @@ INPUTBOX
 309
 105
 kI
-0.1
+0.01
 1
 0
 Number
@@ -149,7 +153,7 @@ INPUTBOX
 366
 105
 kD
-0.0
+0.001
 1
 0
 Number

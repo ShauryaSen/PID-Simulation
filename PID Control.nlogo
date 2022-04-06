@@ -1,19 +1,21 @@
 ; error is distance between robgot and setpoint
-turtles-own [ motor-output error-distance error-sum error-rate]
+turtles-own [ motor-output error-distance error-sum error-rate encoder-value]
 
-globals [ start-point set-point IZone prev-error]
+globals [ off-set start-point set-point IZone prev-error]
 
 to setup
   ca
+  reset-ticks
   setup-field
   setup-bot
 end
 
 to setup-field
-  set set-point (max-pxcor - 3) ; set point is 27
+  set off-set 3
+  set set-point (max-pxcor - off-set) ; set point is 57
   set IZone 6
 
-  set start-point (min-pxcor + 3)
+  set start-point (min-pxcor + off-set) ; start point is 3
    ask patches [
     if abs(pycor) < 3.5 [set pcolor white]
     if pxcor = start-point [set pcolor red]
@@ -35,10 +37,11 @@ end
 
 to go
   ask turtles [
-    set error-distance (set-point - encoder-value)
+    set encoder-value (xcor - start-point )
+    set error-distance ((set-point - off-set) - encoder-value)
 
     if timer != 0 [set error-rate ((error-distance - prev-error) / timer)] ; error-rate
-    show error-rate
+
 
     if abs(error-distance) <= IZone [
       set error-sum (error-sum + error-distance * timer) ;timer is change in time since reset-timer
@@ -56,13 +59,10 @@ to go
     set prev-error error-distance
     wait 0.01
 
-
   ]
+  tick
 end
 
-to-report encoder-value ; I could just say xcor but I want to demonstrate what encoder sensor is for
-  report xcor
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 19
@@ -81,8 +81,8 @@ GRAPHICS-WINDOW
 0
 1
 1
--30
-30
+0
+60
 -4
 4
 1
@@ -131,7 +131,7 @@ INPUTBOX
 250
 105
 kP
-0.9
+0.1
 1
 0
 Number
@@ -142,7 +142,7 @@ INPUTBOX
 309
 105
 kI
-0.01
+0.0
 1
 0
 Number
@@ -153,10 +153,31 @@ INPUTBOX
 366
 105
 kD
-0.001
+0.0
 1
 0
 Number
+
+PLOT
+423
+39
+820
+273
+Error-over-Time
+ticks
+error-distance
+-4.0
+65.0
+-4.0
+65.0
+true
+false
+"set pen-size 10" ""
+PENS
+"error-distance" 1.0 0 -13791810 true "" "plot [error-distance] of turtle 0"
+"set-point" 1.0 0 -4539718 true "" "plot 54 ; set-point - off-set"
+"distance-travelled" 1.0 0 -13840069 true "" "plot [encoder-value] of turtle 0 "
+"y=0" 1.0 0 -16777216 true "" "plot 0"
 
 @#$#@#$#@
 ## WHAT IS IT?
